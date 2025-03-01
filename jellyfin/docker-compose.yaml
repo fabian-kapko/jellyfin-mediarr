@@ -1,18 +1,29 @@
-version: '3.5'
 services:
   jellyfin:
-    image: jellyfin/jellyfin
+    image: jellyfin/jellyfin:latest
     container_name: jellyfin
-
-    network_mode: 'host'
-    group_add:
-      - "993"
-    devices:
-      - /dev/dri/renderD128:/dev/dri/renderD128
-    volumes:
-      - /home/docker/jellyfin-server/config:/config
-      - /home/docker/jellyfin-server/cache:/cache
-      - /mnt/Jellyfin:/media
-    restart: unless-stopped
+    restart: always
+    network_mode: "host"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     environment:
-      - JELLYFIN_PublishedServerUrl=https://jellyfin.kapko.eu
+      - JELLYFIN_PublishedServerUrl=https://jellyfin.xxx.tld
+
+    volumes:
+      - jellyfin_media:/media:rw
+      - /data/stacks/jellyfin/config:/config:rw
+      - /data/stacks/jellyfin/cache:/cache:rw
+
+
+volumes:
+  jellyfin_media:
+    driver: local
+    driver_opts:
+      type: nfs
+      o: addr=NFS-IP,rw
+      device: ":/path"
